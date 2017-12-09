@@ -1,12 +1,15 @@
-// Define global DOM vars
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
+var members = [] || members
 
 function HouseholdMember(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
 }
+HouseholdMember.prototype.setID = function(members) {
+	this.id = members.length + 1
+} 
 
 addButton.onclick = createMember
 
@@ -17,7 +20,10 @@ function createMember(event) {
 
 	if (testFields(fields, fieldValues)) {
 		var member = new HouseholdMember(fieldValues) 
-		console.log(member)		
+		member.setID(members)
+		console.log(member)
+		members.push(member)
+		console.log(members)
 	}
 }
 
@@ -27,7 +33,6 @@ function testFields(fields, valueArray) {
 	for (i = 0; i < fields.length; i++) {
 		var value = fields[i].value
 		var name = fields[i].getAttribute("name") 
-
 		switch(name) {			
 			case "age": 
 				var value = Number(value)
