@@ -2,6 +2,7 @@
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
 var formFields = document.querySelectorAll("[name]")
+
 addButton.onclick = addIndividual
 
 function HouseHoldMember(age, relationship, smoker) {
@@ -13,66 +14,77 @@ function HouseHoldMember(age, relationship, smoker) {
 // Button event to add a household member
 function addIndividual(event) {
 	event.preventDefault()
-	
 	// Check for existing errors
-	var errors = document.querySelectorAll(".error-message")
+	var errors = document.querySelectorAll(".error")
 	if (errors) {
-		clearErrors(errors, formFields)
+		clearErrors(errors)
 	}
-	processFormFields()
+	processFormFields(formFields)
 }
 
-// Helper function to remove elements from DOM
-function removeFromDOM(element) {
-	element.remove()
+function testFormFieldErrors(formFields) {
+	var bool = true
+	for (var i = 0; i < formFields.length; i++) { 
+		// Switch statement allows us to be more specific about conditions and ignore smoker field
+		switch(formFields[i].getAttribute("name")) {
+			case "age": 
+				if (!Number(formFields[i].value) || Number(formFields[i].value) < 1) {					
+					createErrorMessage(formFields[i])
+					bool = false
+				}				
+				break;
+			case "rel": 
+				if (!formFields[i].value) {
+					createErrorMessage(formFields[i])
+					bool = false
+				}
+				break;
+		}	
+	}
+	return bool
 }
 
-// 
-function processFormFields() {
-	var ageField = document.querySelector("input[name='age']")
-	var relationshipField = document.querySelector("select[name='rel']")
-	var smokerField = document.querySelector("input[name='smoker']:checked")
-	
-	smokerValue = !smokerField ? "no" : "yes"
-
-	for (var i = 0; i < formFields.length; i++) {
-		console.log(formFields[i])
+function processFormFields(formFields) {
+	if(testFormFieldErrors(formFields)) {
+		// Convert form field nodelist to array so we can use array methods
+		var formFieldArray = Array.prototype.slice.call(formFields)
+		var formFieldValues = formFieldArray.map(function(field) {
+			console.log(field)
+			if (field.getAttribute("name") === "smoker") {
+				if (field.checked) {
+					return "yes"
+				} else {
+					return "no"
+				}
+			} else {
+				return field.value
+			}
+		})
+		formFieldValues.unshift(null)
+		var householdMember = new (Function.prototype.bind.apply(HouseHoldMember, formFieldValues))
+		console.log(householdMember)
+		return householdMember
+	} else {
+		console.log("Something went wrong")
+		return
 	}
-
-	// var fields = [ageField, relationshipField]
-
-	// if (ageField.value && ageField.value > 0 && relationshipField.value) {
-	// 	var newMember = new HouseHoldMember(ageField.value, relationshipField.value, smokerValue)
-	// 	householdForm.reset()
-	// 	console.log(newMember)
-	// 	return newMember 			
-	// }
-	// else {
-	// 	fields.forEach(function(field) {
-	// 		if (!field.value || field.value < 1) {
-	// 			createErrorMessage(field)
-	// 		}
-	// 	})
-	// 	return
-	// }
 }
 // Clears error messaging and styling when a user clicks "add"
-function clearErrors(errors, formFields) {
+function clearErrors(errors) {
 	for (var i = 0; i < errors.length; i++) {
-		removeFromDOM(errors[i])
-		formFields[i].removeAttribute("style")
-	}	
+		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
+	}
 }
 
-// Creates an error message and applies error styling
 function createErrorMessage(formField) {
 
 	// Create error message element
 	var errorElement = document.createElement("p")
-	errorElement.className = "error-message"
+	errorElement.className = "error"
 
 	// Apply styling
 	formField.style.outline = "1px solid red"
+	formField.className = "error"
 	Object.assign(errorElement.style, {color: "red", display: "inline", marginLeft: "5px"})
 
 	// Takes the label name, cleans it, and puts it in the error message text
