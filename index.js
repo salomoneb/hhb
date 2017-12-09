@@ -1,15 +1,88 @@
 // Define global DOM vars
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
-var formFields = document.querySelectorAll("[name]")
 
-addButton.onclick = addIndividual
-
-function HouseHoldMember(age, relationship, smoker) {
-	this.age = age
-	this.relationship = relationship
-	this.smoker = smoker
+function HouseholdMember(values) {
+	this.age = values[0]
+	this.relationship = values[1]
+	this.smoker = values[2]
 }
+
+addButton.onclick = createMember
+
+function createMember(event) {
+	event.preventDefault()
+	var fields = document.querySelectorAll("[name]")
+	var fieldValues = [] || fieldValues
+
+	if (testFields(fields, fieldValues)) {
+		var member = new HouseholdMember(fieldValues) 
+		console.log(member)		
+	}
+}
+
+function testFields(fields, valueArray) {
+	var bool = true
+
+	for (i = 0; i < fields.length; i++) {
+		var value = fields[i].value
+		var name = fields[i].getAttribute("name") 
+
+		switch(name) {			
+			case "age": 
+				var value = Number(value)
+				if (!value || isNaN(value) === true || value < 1) { 
+					console.log(name, "failure")	
+					bool = false				
+				} else {
+					valueArray.push(value)
+				}
+				break;
+			case "rel":
+				if (!value) { 					
+					console.log(name, "failure")
+					bool = false					
+				}	else {
+					valueArray.push(value)
+				}	
+				break;
+			case "smoker":
+				fields[i].checked ? value = "yes" : value = "no"
+				console.log(fields[i].checked)
+				valueArray.push(value)
+				console.log(name, "success")
+				break;
+		}
+	}
+	return bool
+}
+
+// Get values of each field
+
+// Validate fields
+	// Age is required and must be greater than zero
+	// Relationship is required
+		// If invalid, the UI should  
+
+// Add a person
+	// Clicking "add" adds the person to a list with a remove button
+	// Clicking "add" also adds them to an array to be submitted. 
+
+// Remove a person 
+	// Clicking the remove button removes them from the list
+
+// On submission
+	// Display the list as JSON in the code element
+
+// After submitting, should be able to add to/resubmit the original household
+
+
+
+
+
+// Clicking on the remove button deletes them 
+
+/*
 
 // Button event to add a household member
 function addIndividual(event) {
@@ -44,12 +117,31 @@ function testFormFieldErrors(formFields) {
 	return bool
 }
 
+function removeHouseholdMember(obj) {
+	console.log(members)
+	members.push(obj)
+	var removeButton = document.createElement("button")
+	removeButton.className = "remove"
+	var removeButtonLabel = document.createTextNode("Remove")
+	removeButton.appendChild(removeButtonLabel)
+
+	householdForm.append(removeButton)
+
+	removeButton.onclick = function(event) {
+		event.preventDefault()
+		console.log(members.find(obj))
+	}
+	// console.log(obj)
+	console.log(members)
+
+
+} 
+
 function processFormFields(formFields) {
 	if(testFormFieldErrors(formFields)) {
 		// Convert form field nodelist to array so we can use array methods
 		var formFieldArray = Array.prototype.slice.call(formFields)
 		var formFieldValues = formFieldArray.map(function(field) {
-			console.log(field)
 			if (field.getAttribute("name") === "smoker") {
 				if (field.checked) {
 					return "yes"
@@ -61,9 +153,8 @@ function processFormFields(formFields) {
 			}
 		})
 		formFieldValues.unshift(null)
-		var householdMember = new (Function.prototype.bind.apply(HouseHoldMember, formFieldValues))
-		console.log(householdMember)
-		return householdMember
+		var householdMember = new (Function.prototype.bind.apply(HouseholdMember, formFieldValues))
+		return removeHouseholdMember(householdMember)
 	} else {
 		console.log("Something went wrong")
 		return
@@ -77,7 +168,6 @@ function clearErrors(errors) {
 }
 
 function createErrorMessage(formField) {
-
 	// Create error message element
 	var errorElement = document.createElement("p")
 	errorElement.className = "error"
@@ -93,3 +183,4 @@ function createErrorMessage(formField) {
 	errorElement.appendChild(errorMessage)
 	formField.parentElement.appendChild(errorElement)
 }
+*/
