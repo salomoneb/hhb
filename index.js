@@ -1,5 +1,6 @@
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
+var memberList = document.querySelector(".household")
 var members = [] || members
 
 function HouseholdMember(values) {
@@ -8,36 +9,60 @@ function HouseholdMember(values) {
 	this.smoker = values[2]
 }
 HouseholdMember.prototype.setID = function(members) {
-	this.id = members.length + 1
+	members.length ? this.id = getLargestId() : this.id = 1
+	function getLargestId() {
+		var highestCurrentId = members.map(function(member) {
+	    return member.id
+  	})	
+  	.reduce(function(acc, curr) {
+			return Math.max(acc, curr)
+		})
+		return highestCurrentId + 1
+	}
 } 
 
 addButton.onclick = createMember
 
 function createMember(event) {
 	event.preventDefault()
+	var errors = document.querySelectorAll(".error")
+	clearErrors(errors)
+
 	var fields = document.querySelectorAll("[name]")
 	var fieldValues = [] || fieldValues
 
-	if (testFields(fields, fieldValues)) {
+	if (testFields(fields, fieldValues)) {		
 		var member = new HouseholdMember(fieldValues) 
 		member.setID(members)
-		console.log(member)
 		members.push(member)
 		console.log(members)
+
+		addMemberToList(member)
 	}
+}
+
+function addMemberToList(member) {
+	var memberEntry = document.createElement("li")
+	memberEntry.className = "household-member"
+	memberEntry.setAttribute("data-value", member.id)
+	console.log(createMemberListEntry(member))
+	var memberText = document.createTextNode(createMemberListEntry(member))
+
+	memberEntry.appendChild(memberText)
+	memberList.appendChild(memberEntry)
 }
 
 function testFields(fields, valueArray) {
 	var bool = true
-
 	for (i = 0; i < fields.length; i++) {
-		var value = fields[i].value
-		var name = fields[i].getAttribute("name") 
+		var field = fields[i]
+		var value = field.value
+		var name = field.getAttribute("name") 
 		switch(name) {			
 			case "age": 
 				var value = Number(value)
 				if (!value || isNaN(value) === true || value < 1) { 
-					console.log(name, "failure")	
+					createErrorMessage(field)
 					bool = false				
 				} else {
 					valueArray.push(value)
@@ -45,7 +70,7 @@ function testFields(fields, valueArray) {
 				break;
 			case "rel":
 				if (!value) { 					
-					console.log(name, "failure")
+					createErrorMessage(field)
 					bool = false					
 				}	else {
 					valueArray.push(value)
@@ -53,13 +78,48 @@ function testFields(fields, valueArray) {
 				break;
 			case "smoker":
 				fields[i].checked ? value = "yes" : value = "no"
-				console.log(fields[i].checked)
 				valueArray.push(value)
-				console.log(name, "success")
 				break;
 		}
 	}
 	return bool
+}
+
+function createErrorMessage(formField) {
+	// Create error message element
+	var errorElement = document.createElement("p")
+	errorElement.className = "error"
+
+	// Apply styling
+	formField.style.outline = "1px solid red"
+	formField.className = "error"
+	Object.assign(errorElement.style, {color: "red", display: "inline", marginLeft: "5px"})
+
+	// Takes the label name, cleans it, and puts it in the error message text
+	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()			
+	var errorMessage = document.createTextNode("Please enter a valid " + cleanedFieldLabel)
+	errorElement.appendChild(errorMessage)
+	formField.parentElement.appendChild(errorElement)
+}
+
+function clearErrors(errors) {
+	for (var i = 0; i < errors.length; i++) {
+		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
+	}
+}
+
+function createMemberListEntry(member) {
+	var string = ""
+	for (prop in member) {
+		if (member.hasOwnProperty(prop)) {
+			string += capitalizeFirstLetter(prop) + ": " + member[prop] + " "			
+		}
+	}
+	return string
+}
+
+function capitalizeFirstLetter(string) {
+	return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
 // Get values of each field
@@ -100,27 +160,6 @@ function addIndividual(event) {
 	processFormFields(formFields)
 }
 
-function testFormFieldErrors(formFields) {
-	var bool = true
-	for (var i = 0; i < formFields.length; i++) { 
-		// Switch statement allows us to be more specific about conditions and ignore smoker field
-		switch(formFields[i].getAttribute("name")) {
-			case "age": 
-				if (!Number(formFields[i].value) || Number(formFields[i].value) < 1) {					
-					createErrorMessage(formFields[i])
-					bool = false
-				}				
-				break;
-			case "rel": 
-				if (!formFields[i].value) {
-					createErrorMessage(formFields[i])
-					bool = false
-				}
-				break;
-		}	
-	}
-	return bool
-}
 
 function removeHouseholdMember(obj) {
 	console.log(members)
@@ -141,51 +180,9 @@ function removeHouseholdMember(obj) {
 
 
 } 
-
-function processFormFields(formFields) {
-	if(testFormFieldErrors(formFields)) {
-		// Convert form field nodelist to array so we can use array methods
-		var formFieldArray = Array.prototype.slice.call(formFields)
-		var formFieldValues = formFieldArray.map(function(field) {
-			if (field.getAttribute("name") === "smoker") {
-				if (field.checked) {
-					return "yes"
-				} else {
-					return "no"
-				}
-			} else {
-				return field.value
-			}
-		})
-		formFieldValues.unshift(null)
-		var householdMember = new (Function.prototype.bind.apply(HouseholdMember, formFieldValues))
-		return removeHouseholdMember(householdMember)
-	} else {
-		console.log("Something went wrong")
-		return
-	}
-}
-// Clears error messaging and styling when a user clicks "add"
-function clearErrors(errors) {
-	for (var i = 0; i < errors.length; i++) {
-		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
-	}
-}
-
-function createErrorMessage(formField) {
-	// Create error message element
-	var errorElement = document.createElement("p")
-	errorElement.className = "error"
-
-	// Apply styling
-	formField.style.outline = "1px solid red"
-	formField.className = "error"
-	Object.assign(errorElement.style, {color: "red", display: "inline", marginLeft: "5px"})
-
-	// Takes the label name, cleans it, and puts it in the error message text
-	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()			
-	var errorMessage = document.createTextNode("Please enter a valid " + cleanedFieldLabel)
-	errorElement.appendChild(errorMessage)
-	formField.parentElement.appendChild(errorElement)
-}
 */
+
+// Clears error messaging and styling when a user clicks "add"
+
+
+
