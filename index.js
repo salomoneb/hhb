@@ -16,12 +16,9 @@ function HouseholdMember(values) {
 HouseholdMember.prototype.setID = function(members) {
 	members.length ? this.id = getLargestId() : this.id = 1
 	function getLargestId() {
-		var highestCurrentId = members.map(function(member) {
-	    return member.id
-  	})	
-  	.reduce(function(acc, curr) {
-			return Math.max(acc, curr)
-		})
+		var highestCurrentId = members.reduce(function(acc, curr) {
+			return Math.max(acc, curr.id)
+		}, 0)
 		return highestCurrentId + 1
 	}
 } 
