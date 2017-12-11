@@ -53,8 +53,17 @@ function addMemberToList(member) {
 	console.log(createMemberListEntry(member))
 	var memberText = document.createTextNode(createMemberListEntry(member))
 
+	// Remove button
+	var removeButton = document.createElement("button")
+	removeButton.className = "remove"
+	var removeButtonLabel = document.createTextNode("Remove")
+	removeButton.appendChild(removeButtonLabel)	
+
 	memberEntry.appendChild(memberText)
+	memberEntry.appendChild(removeButton)
 	memberList.appendChild(memberEntry)
+
+	removeButton.onclick = removeMember
 }
 
 // Validate form entries
@@ -104,6 +113,15 @@ function createErrorMessage(formField) {
 	var errorMessage = document.createTextNode("Please enter a valid " + cleanedFieldLabel)
 	errorElement.appendChild(errorMessage)
 	formField.parentElement.appendChild(errorElement)
+}
+
+function removeMember(event, member) {
+	event.preventDefault()
+	var memberEntries = document.querySelectorAll(".household-member")
+	for (var i = 0; i < members.length && i < memberEntries.length; i++) {
+		console.log(members[i])
+		console.log(memberEntries[i])
+	}
 }
 
 // Function to clear error messages
