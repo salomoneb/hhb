@@ -1,13 +1,18 @@
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
 var memberList = document.querySelector(".household")
+
+// Where we'll store our household members
 var members = [] || members
 
+// Create our household member
 function HouseholdMember(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
 }
+
+// Method to set a unique member ID
 HouseholdMember.prototype.setID = function(members) {
 	members.length ? this.id = getLargestId() : this.id = 1
 	function getLargestId() {
@@ -21,8 +26,10 @@ HouseholdMember.prototype.setID = function(members) {
 	}
 } 
 
+// When we click the "add" button
 addButton.onclick = createMember
 
+// Initializes member and adds to submission list
 function createMember(event) {
 	event.preventDefault()
 	var errors = document.querySelectorAll(".error")
@@ -41,6 +48,7 @@ function createMember(event) {
 	}
 }
 
+// Adds member to the DOM list
 function addMemberToList(member) {
 	var memberEntry = document.createElement("li")
 	memberEntry.className = "household-member"
@@ -52,6 +60,7 @@ function addMemberToList(member) {
 	memberList.appendChild(memberEntry)
 }
 
+// Validate form entries
 function testFields(fields, valueArray) {
 	var bool = true
 	for (i = 0; i < fields.length; i++) {
@@ -85,12 +94,10 @@ function testFields(fields, valueArray) {
 	return bool
 }
 
+// Create error message
 function createErrorMessage(formField) {
-	// Create error message element
 	var errorElement = document.createElement("p")
 	errorElement.className = "error"
-
-	// Apply styling
 	formField.style.outline = "1px solid red"
 	formField.className = "error"
 	Object.assign(errorElement.style, {color: "red", display: "inline", marginLeft: "5px"})
@@ -102,12 +109,14 @@ function createErrorMessage(formField) {
 	formField.parentElement.appendChild(errorElement)
 }
 
+// Function to clear error messages
 function clearErrors(errors) {
 	for (var i = 0; i < errors.length; i++) {
 		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
 	}
 }
 
+// Function to generate a text entry based on each members' data
 function createMemberListEntry(member) {
 	var string = ""
 	for (prop in member) {
@@ -118,6 +127,7 @@ function createMemberListEntry(member) {
 	return string
 }
 
+// Function to capitalize the first letter of strings 
 function capitalizeFirstLetter(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1)
 }
@@ -148,17 +158,6 @@ function capitalizeFirstLetter(string) {
 // Clicking on the remove button deletes them 
 
 /*
-
-// Button event to add a household member
-function addIndividual(event) {
-	event.preventDefault()
-	// Check for existing errors
-	var errors = document.querySelectorAll(".error")
-	if (errors) {
-		clearErrors(errors)
-	}
-	processFormFields(formFields)
-}
 
 
 function removeHouseholdMember(obj) {
