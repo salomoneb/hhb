@@ -1,9 +1,34 @@
 var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
+var submitButton = document.querySelector("button[type='submit']")
 var memberList = document.querySelector(".household")
 
 // Where we'll store our household members
-var members = [] || members
+var householdMembers = [] || householdMembers
+
+// When we click the "add" button
+addButton.onclick = createMember
+
+// When we click the "submit" button
+submitButton.addEventListener("click", function(event) {
+	event.preventDefault()
+	if (householdMembers.length) {
+		var jsonText = document.querySelector(".json")
+		if (jsonText !== null) {
+			jsonText.remove()
+		}
+
+		var debugElement = document.querySelector(".debug")
+		debugElement.style.display = "block"
+		var jsonMembers = JSON.stringify({householdMembers}, null, 2)
+		jsonMembers = document.createTextNode(jsonMembers)
+
+		var codeElement = document.createElement("code")
+		codeElement.className = "json"
+		codeElement.appendChild(jsonMembers)
+		debugElement.appendChild(codeElement)		
+	}
+})
 
 // Create our household member
 function HouseholdMember(values) {
@@ -23,9 +48,6 @@ HouseholdMember.prototype.setID = function(members) {
 	}
 } 
 
-// When we click the "add" button
-addButton.onclick = createMember
-
 // Initializes member and adds to submission list
 function createMember(event) {
 	event.preventDefault()
@@ -35,14 +57,18 @@ function createMember(event) {
 	var fields = document.querySelectorAll("[name]")
 	var fieldValues = [] || fieldValues
 
+	// If form values pass our tests
 	if (testFields(fields, fieldValues)) {		
-		var member = new HouseholdMember(fieldValues) 
-		member.setID(members)
-		members.push(member)
-		console.log(members)
-
-		addMemberToList(member)
+		var member = new HouseholdMember(fieldValues)
+		initializeMember(member)
 	}
+}
+
+// Sets member ID, adds to array for submission, and inserts into DOM
+function initializeMember(member) {
+	member.setID(householdMembers)
+	householdMembers.push(member)
+	addMemberToList(member)
 }
 
 // Adds member to the DOM list
@@ -50,7 +76,6 @@ function addMemberToList(member) {
 	var memberEntry = document.createElement("li")
 	memberEntry.className = "household-member"
 	memberEntry.setAttribute("data-value", member.id)
-	console.log(createMemberListEntry(member))
 	var memberText = document.createTextNode(createMemberListEntry(member))
 
 	// Remove button
@@ -63,7 +88,22 @@ function addMemberToList(member) {
 	memberEntry.appendChild(removeButton)
 	memberList.appendChild(memberEntry)
 
-	removeButton.onclick = removeMember
+	removeButton.addEventListener("click", function() {
+		removeMember(member)
+	})
+}
+
+// Removes a member from the DOM and the submission list
+function removeMember(member) {
+	var memberListEntries = document.querySelectorAll(".household-member")
+	for (var i = 0; i < householdMembers.length && i < memberListEntries.length; i++) {
+		var listId = memberListEntries[i].getAttribute("data-value")
+		var arrayId = householdMembers[i].id
+		if (listId == member.id && arrayId === member.id) {
+			memberListEntries[i].remove()
+			householdMembers.splice([i], 1)
+		}
+	}
 }
 
 // Validate form entries
@@ -115,88 +155,25 @@ function createErrorMessage(formField) {
 	formField.parentElement.appendChild(errorElement)
 }
 
-function removeMember(event, member) {
-	event.preventDefault()
-	var memberEntries = document.querySelectorAll(".household-member")
-	for (var i = 0; i < members.length && i < memberEntries.length; i++) {
-		console.log(members[i])
-		console.log(memberEntries[i])
-	}
-}
-
-// Function to clear error messages
+// Clear error messages
 function clearErrors(errors) {
 	for (var i = 0; i < errors.length; i++) {
 		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
 	}
 }
 
-// Function to generate a text entry based on each members' data
+// Generate a text string based on each member's data
 function createMemberListEntry(member) {
 	var string = ""
 	for (prop in member) {
-		if (member.hasOwnProperty(prop)) {
-			string += capitalizeFirstLetter(prop) + ": " + member[prop] + " "			
+		if (member.hasOwnProperty(prop) && prop !== "id") {
+			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + " "
 		}
 	}
 	return string
 }
 
-// Function to capitalize the first letter of strings 
+// Capitalize the first letter of strings 
 function capitalizeFirstLetter(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1)
+	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
 }
-
-// Get values of each field
-
-// Validate fields
-	// Age is required and must be greater than zero
-	// Relationship is required
-		// If invalid, the UI should  
-
-// Add a person
-	// Clicking "add" adds the person to a list with a remove button
-	// Clicking "add" also adds them to an array to be submitted. 
-
-// Remove a person 
-	// Clicking the remove button removes them from the list
-
-// On submission
-	// Display the list as JSON in the code element
-
-// After submitting, should be able to add to/resubmit the original household
-
-
-
-
-
-// Clicking on the remove button deletes them 
-
-/*
-
-
-function removeHouseholdMember(obj) {
-	console.log(members)
-	members.push(obj)
-	var removeButton = document.createElement("button")
-	removeButton.className = "remove"
-	var removeButtonLabel = document.createTextNode("Remove")
-	removeButton.appendChild(removeButtonLabel)
-
-	householdForm.append(removeButton)
-
-	removeButton.onclick = function(event) {
-		event.preventDefault()
-		console.log(members.find(obj))
-	}
-	// console.log(obj)
-	console.log(members)
-
-
-} 
-*/
-
-// Clears error messaging and styling when a user clicks "add"
-
-
-
