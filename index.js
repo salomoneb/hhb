@@ -1,7 +1,12 @@
-var householdForm = document.querySelector("form")
 var addButton = document.querySelector(".add")
 var submitButton = document.querySelector("button[type='submit']")
 var memberList = document.querySelector(".household")
+
+// TODO:
+	// Clean up submit function
+	// Style member list
+	// Refactor and reimplement styling function across code 
+
 
 // Where we'll store our household members
 var householdMembers = [] || householdMembers
@@ -10,25 +15,44 @@ var householdMembers = [] || householdMembers
 addButton.onclick = createMember
 
 // When we click the "submit" button
+// TODO: put in separate function
 submitButton.addEventListener("click", function(event) {
 	event.preventDefault()
+	var debugElement = document.querySelector(".debug")
+	debugElement.innerHTML = ""
+	var debugStyles = "color:orange;display:block;"
+	styleElement(debugElement, debugStyles)
+
+
 	if (householdMembers.length) {
-		var jsonText = document.querySelector(".json")
-		if (jsonText !== null) {
-			jsonText.remove()
-		}
-
-		var debugElement = document.querySelector(".debug")
-		debugElement.style.display = "block"
-		var jsonMembers = JSON.stringify({householdMembers}, null, 2)
-		jsonMembers = document.createTextNode(jsonMembers)
-
-		var codeElement = document.createElement("code")
-		codeElement.className = "json"
-		codeElement.appendChild(jsonMembers)
-		debugElement.appendChild(codeElement)		
-	}
+		submitMemberList(householdMembers, debugElement)
+	} else {
+		var submitErrorText = document.createTextNode("Please add at least one household member.")
+		debugElement.appendChild(submitErrorText)
+	}	
 })
+
+function styleElement(element, styles) {
+	return element.style.cssText = styles
+}
+
+function submitMemberList(memberList, debugElement) {
+	var jsonText = document.querySelector(".json")
+
+
+	if (jsonText !== null) {
+		jsonText.remove()
+	}
+
+	var jsonMembers = JSON.stringify({memberList}, null, 2)
+	jsonMembers = document.createTextNode(jsonMembers)
+
+	var codeElement = document.createElement("code")
+
+	codeElement.className = "json"
+	codeElement.appendChild(jsonMembers)
+	debugElement.appendChild(codeElement)		
+}
 
 // Create our household member
 function HouseholdMember(values) {
@@ -52,6 +76,7 @@ HouseholdMember.prototype.setID = function(members) {
 function createMember(event) {
 	event.preventDefault()
 	var errors = document.querySelectorAll(".error")
+	var householdForm = document.querySelector("form")
 	clearErrors(errors)
 
 	var fields = document.querySelectorAll("[name]")
@@ -60,6 +85,7 @@ function createMember(event) {
 	// If form values pass our tests
 	if (testFields(fields, fieldValues)) {		
 		var member = new HouseholdMember(fieldValues)
+		householdForm.reset()
 		initializeMember(member)
 	}
 }
@@ -140,13 +166,14 @@ function testFields(fields, valueArray) {
 	return bool
 }
 
+
 // Create error message
 function createErrorMessage(formField) {
 	var errorElement = document.createElement("p")
 	errorElement.className = "error"
 	formField.style.outline = "1px solid red"
 	formField.className = "error"
-	Object.assign(errorElement.style, {color: "red", display: "inline", marginLeft: "5px"})
+	styleElement(errorElement, "color:red; display:inline; margin-left:5px")
 
 	// Takes the label name, cleans it, and puts it in the error message text
 	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()			
