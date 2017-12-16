@@ -2,97 +2,73 @@ var addButton = document.querySelector(".add")
 var submitButton = document.querySelector("button[type='submit']")
 var memberList = document.querySelector(".household")
 
-// TODO:
-	// Clean up submit function
-	// Style member list
-	// Refactor and reimplement styling function across code 
-
+// Sets button type so all buttons don't reset or submit form
+var buttons = document.querySelectorAll("button")
+buttons.forEach(function(button) {
+	button.setAttribute("type", "button")
+})
 
 // Where we'll store our household members
 var householdMembers = [] || householdMembers
 
-// When we click the "add" button
-addButton.onclick = createMember
-
-// When we click the "submit" button
-// TODO: put in separate function
-submitButton.addEventListener("click", function(event) {
-	event.preventDefault()
-	var debugElement = document.querySelector(".debug")
-	debugElement.innerHTML = ""
-	var debugStyles = "color:orange;display:block;"
-	styleElement(debugElement, debugStyles)
-
-
-	if (householdMembers.length) {
-		submitMemberList(householdMembers, debugElement)
-	} else {
-		var submitErrorText = document.createTextNode("Please add at least one household member.")
-		debugElement.appendChild(submitErrorText)
-	}	
-})
-
-function styleElement(element, styles) {
-	return element.style.cssText = styles
-}
-
-function submitMemberList(memberList, debugElement) {
-	var jsonText = document.querySelector(".json")
-
-
-	if (jsonText !== null) {
-		jsonText.remove()
-	}
-
-	var jsonMembers = JSON.stringify({memberList}, null, 2)
-	jsonMembers = document.createTextNode(jsonMembers)
-
-	var codeElement = document.createElement("code")
-
-	codeElement.className = "json"
-	codeElement.appendChild(jsonMembers)
-	debugElement.appendChild(codeElement)		
-}
-
-// Create our household member
+// Function to create a household member
 function HouseholdMember(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
 }
 
-// Method to set a unique member ID
-HouseholdMember.prototype.setID = function(members) {
-	members.length ? this.id = getLargestId() : this.id = 1
-	function getLargestId() {
-		var highestCurrentId = members.reduce(function(acc, curr) {
-			return Math.max(acc, curr.id)
-		}, 0)
-		return highestCurrentId + 1
+// Method to set a pseudo-unique four digit household member ID  
+HouseholdMember.prototype.setId = function() {
+	this.id = createId()
+
+	function createId() {
+		var uniqueId = Math.floor((Math.random() * 9000) + 1000)
+		householdMembers.forEach(function(member) {
+			if (member.id === uniqueId) {
+				createId()
+			} 
+		})
+		return uniqueId
 	}
 } 
 
-// Initializes member and adds to submission list
-function createMember(event) {
-	event.preventDefault()
-	var errors = document.querySelectorAll(".error")
-	var householdForm = document.querySelector("form")
-	clearErrors(errors)
+// Form button events
+addButton.addEventListener("click", createHouseholdMember) 
+submitButton.addEventListener("click", submitHouseholdList) 
 
+// When we submit our JSON household list
+function submitHouseholdList() {
+	var debugElement = document.querySelector(".debug")
+	debugElement.innerHTML = ""
+	debugElement.style.cssText = "color:red; display:block;"
+	var submissionErrorText = document.createTextNode("Please add at least one household member.")
+	householdMembers.length ? jsonifyHouseholdMembers(householdMembers, debugElement) : debugElement.appendChild(submissionErrorText)
+}
+
+function jsonifyHouseholdMembers(memberList, debugElement) {
+	var jsonMembers = JSON.stringify({memberList}, null, 2)
+	jsonMembers = document.createTextNode(jsonMembers)
+	debugElement.appendChild(jsonMembers)
+}
+
+// Initializes member and adds to submission list
+function createHouseholdMember() {
+	var errors = document.querySelectorAll(".error")
+	clearErrors(errors)
 	var fields = document.querySelectorAll("[name]")
 	var fieldValues = [] || fieldValues
-
 	// If form values pass our tests
 	if (testFields(fields, fieldValues)) {		
 		var member = new HouseholdMember(fieldValues)
-		householdForm.reset()
 		initializeMember(member)
+		document.querySelector("form").reset()
 	}
 }
 
 // Sets member ID, adds to array for submission, and inserts into DOM
 function initializeMember(member) {
-	member.setID(householdMembers)
+	member.setId()
 	householdMembers.push(member)
 	addMemberToList(member)
 }
@@ -102,7 +78,7 @@ function addMemberToList(member) {
 	var memberEntry = document.createElement("li")
 	memberEntry.className = "household-member"
 	memberEntry.setAttribute("data-value", member.id)
-	var memberText = document.createTextNode(createMemberListEntry(member))
+	var memberText = document.createTextNode(createHouseholdMemberListEntry(member))
 
 	// Remove button
 	var removeButton = document.createElement("button")
@@ -133,7 +109,7 @@ function removeMember(member) {
 }
 
 // Validate form entries
-function testFields(fields, valueArray) {
+function testFields(fields, valuesArray) {
 	var bool = true
 	for (i = 0; i < fields.length; i++) {
 		var field = fields[i]
@@ -146,7 +122,7 @@ function testFields(fields, valueArray) {
 					createErrorMessage(field)
 					bool = false				
 				} else {
-					valueArray.push(value)
+					valuesArray.push(value)
 				}
 				break;
 			case "rel":
@@ -154,18 +130,17 @@ function testFields(fields, valueArray) {
 					createErrorMessage(field)
 					bool = false					
 				}	else {
-					valueArray.push(value)
+					valuesArray.push(value)
 				}	
 				break;
 			case "smoker":
 				fields[i].checked ? value = "yes" : value = "no"
-				valueArray.push(value)
+				valuesArray.push(value)
 				break;
 		}
 	}
 	return bool
 }
-
 
 // Create error message
 function createErrorMessage(formField) {
@@ -173,7 +148,7 @@ function createErrorMessage(formField) {
 	errorElement.className = "error"
 	formField.style.outline = "1px solid red"
 	formField.className = "error"
-	styleElement(errorElement, "color:red; display:inline; margin-left:5px")
+	errorElement.style.cssText = "color:red; display:inline; margin-left:5px"
 
 	// Takes the label name, cleans it, and puts it in the error message text
 	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()			
@@ -188,9 +163,8 @@ function clearErrors(errors) {
 		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
 	}
 }
-
 // Generate a text string based on each member's data
-function createMemberListEntry(member) {
+function createHouseholdMemberListEntry(member) {
 	var string = ""
 	for (prop in member) {
 		if (member.hasOwnProperty(prop) && prop !== "id") {
@@ -199,7 +173,6 @@ function createMemberListEntry(member) {
 	}
 	return string
 }
-
 // Capitalize the first letter of strings 
 function capitalizeFirstLetter(string) {
 	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
