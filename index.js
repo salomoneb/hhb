@@ -1,34 +1,37 @@
+window.onload = setStyles
+
 var addButton = document.querySelector(".add")
 var submitButton = document.querySelector("button[type='submit']")
-var householdMembers = [] || householdMembers
+var members = [] || members
 
 // Default button behavior
 var buttons = document.querySelectorAll("button")
 buttons.forEach(function(button) {
 	button.setAttribute("type", "button")
+	// button.style.cssText = "border-radius: 5px; color: #fff; cursor: pointer;	 display: inline-block; padding: 0.5em 2em; text-transform: uppercase;"
 	button.addEventListener("click", function() {
 		clearErrors()
 	})
 })
 
-// Button events
-addButton.onclick = createHouseholdMember
-submitButton.onclick = submitHouseholdList
+addButton.onclick = validateMember
+submitButton.onclick = submitMembers
 
 /********** MEMBER OBJECT *********/
 
 // Function representing a household member
-function HouseholdMember(values) {
+function Member(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
+	members.push(this)
 }
 
 // Method to set a pseudo-unique four digit household member ID  
-HouseholdMember.prototype.setId = function() {
+Member.prototype.setId = function() {
 	this.id = (function() {
 		var uniqueId = Math.floor((Math.random() * 9000) + 1000)
-		householdMembers.forEach(function(member) {
+		members.forEach(function(member) {
 			if (member.id === uniqueId) {
 				createId()
 			} 
@@ -39,25 +42,19 @@ HouseholdMember.prototype.setId = function() {
 
 /********** CREATION AND SUBMISSION *********/
 
-function createHouseholdMember() {
+function validateMember() {
 	var fieldValues = [] || fieldValues
-
-	// If form values pass our tests
-	if (validateFields(fieldValues)) {		
-		initializeMember(fieldValues)
-		document.querySelector("form").reset()
-	}
+	if (validateFields(fieldValues)) { createMember(fieldValues, displayMember) }
 }
 
-function submitHouseholdList() {
-	householdMembers.length ? jsonifyMembers(householdMembers) : createSubmissionError()
+function submitMembers() {
+	members.length ? jsonifyMembers(members) : createSubmissionError()
 
-	function jsonifyMembers(householdMembers) {
+	function jsonifyMembers(members) {
 		var debugElement = document.querySelector(".debug")
-		debugElement.innerHTML = ""	
+		debugElement.innerHTML = ""			
 		debugElement.style.cssText = "display:block;"
-
-		var jsonMembers = JSON.stringify({householdMembers}, null, 2)
+		var jsonMembers = JSON.stringify({members}, null, 2)
 		jsonMembers = document.createTextNode(jsonMembers)
 		debugElement.appendChild(jsonMembers)
 	}
@@ -69,38 +66,39 @@ function submitHouseholdList() {
 	}	
 }
 
-function initializeMember(fieldValues) {
-	var member = new HouseholdMember(fieldValues)
-	member.setId()
-	householdMembers.push(member)
-	addMemberToList(member)
+function createMember(fieldValues, displayMember) {
+	var member = new Member(fieldValues)
+	member.setId()	
+	document.querySelector("form").reset()
+	displayMember(member)
+	console.log(members)
 }
 
-function addMemberToList(member) {
-	var memberList = document.querySelector(".household")
-	var memberEntry = createElement("li", createHouseholdMemberListEntry(member), "household-member")
-	var removeButton = createElement("button", "Remove", "remove")
+function displayMember(member) {	
+	var memberItem = createElement("li", createMemberItem(member), "household-member", "margin: 0.5em 0;")
+	var removeButton = createElement("button", "Remove", "remove-button")
 
-	memberEntry.setAttribute("data-value", member.id)
-	memberEntry.appendChild(removeButton)
-	memberList.appendChild(memberEntry)
+	memberItem.setAttribute("data-value", member.id)
+	memberItem.appendChild(removeButton)
+
+	var memberList = document.querySelector(".household")
+	memberList.appendChild(memberItem)
 
 	removeButton.addEventListener("click", function() {
 		removeMember(member)
 	})
 }
 
-// Removes the member from the DOM list and the submission array
 function removeMember(member) {
-	var domListEntry = document.querySelectorAll(".household-member")
+	var displayedMembers = document.querySelectorAll(".household-member")
 
-	for (var i = 0; i < householdMembers.length && i < domListEntry.length; i++) {		
-		var listId = domListEntry[i].getAttribute("data-value")
-		var arrayId = householdMembers[i].id
+	for (var i = 0; i < members.length && i < displayedMembers.length; i++) {		
+		var displayId = displayedMembers[i].getAttribute("data-value")
+		var arrayId = members[i].id
 
-		if (listId == member.id && arrayId === member.id) {
-			domListEntry[i].remove()
-			householdMembers.splice([i], 1)
+		if (displayId == member.id && arrayId === member.id) {
+			displayedMembers[i].remove()
+			members.splice([i], 1)
 		}
 
 	}
@@ -177,7 +175,7 @@ function clearErrors() {
 	}
 }
 // Generate a text string based on each member's data
-function createHouseholdMemberListEntry(member) {
+function createMemberItem(member) {
 	var string = ""
 	for (prop in member) {
 		if (member.hasOwnProperty(prop) && prop !== "id") {
@@ -189,4 +187,11 @@ function createHouseholdMemberListEntry(member) {
 // Capitalize the first letter of strings 
 function capitalizeFirstLetter(string) {
 	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
+}
+
+/********** STYLING *********/
+
+function setStyles() {
+	document.querySelector("body").style.cssText = "margin: 2em 4em; font-family: Arial, Helvetica, sans-serif;"
+	document.querySelector("ol").style.cssText = "list-style: inside; list-style-type: decimal; margin-bottom: 2em; padding-left: 0;"
 }
