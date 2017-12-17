@@ -1,19 +1,29 @@
 var addButton = document.querySelector(".add")
 var submitButton = document.querySelector("button[type='submit']")
-var memberList = document.querySelector(".household")
 var householdMembers = [] || householdMembers
 
-// Sets button type so all buttons don't reset or submit form
+// Default button behavior
 var buttons = document.querySelectorAll("button")
 buttons.forEach(function(button) {
 	button.setAttribute("type", "button")
+	button.addEventListener("click", function() {
+		clearErrors()
+	})
 })
-// Function to create a household member
+
+// Button events
+addButton.onclick = createHouseholdMember
+submitButton.onclick = submitHouseholdList
+
+/********** MEMBER OBJECT *********/
+
+// Function representing a household member
 function HouseholdMember(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
 }
+
 // Method to set a pseudo-unique four digit household member ID  
 HouseholdMember.prototype.setId = function() {
 	this.id = (function() {
@@ -27,16 +37,27 @@ HouseholdMember.prototype.setId = function() {
 	})()
 }
 
-// When we submit our JSON household list
-function submitHouseholdList() {
-	clearErrors()
-	householdMembers.length ? jsonifyList(householdMembers) : createSubmissionError()
+/********** CREATION AND SUBMISSION *********/
 
-	function jsonifyList(memberList) {
+function createHouseholdMember() {
+	var fieldValues = [] || fieldValues
+
+	// If form values pass our tests
+	if (validateFields(fieldValues)) {		
+		initializeMember(fieldValues)
+		document.querySelector("form").reset()
+	}
+}
+
+function submitHouseholdList() {
+	householdMembers.length ? jsonifyMembers(householdMembers) : createSubmissionError()
+
+	function jsonifyMembers(householdMembers) {
 		var debugElement = document.querySelector(".debug")
 		debugElement.innerHTML = ""	
 		debugElement.style.cssText = "display:block;"
-		var jsonMembers = JSON.stringify({memberList}, null, 2)
+
+		var jsonMembers = JSON.stringify({householdMembers}, null, 2)
 		jsonMembers = document.createTextNode(jsonMembers)
 		debugElement.appendChild(jsonMembers)
 	}
@@ -48,17 +69,6 @@ function submitHouseholdList() {
 	}	
 }
 
-function createHouseholdMember() {
-	clearErrors()
-	var fieldValues = [] || fieldValues
-	// If form values pass our tests
-	if (testFields(fieldValues)) {		
-		initializeMember(fieldValues)
-		document.querySelector("form").reset()
-	}
-}
-
-// When the member is created
 function initializeMember(fieldValues) {
 	var member = new HouseholdMember(fieldValues)
 	member.setId()
@@ -66,46 +76,39 @@ function initializeMember(fieldValues) {
 	addMemberToList(member)
 }
 
-// Adds member to the DOM
 function addMemberToList(member) {
+	var memberList = document.querySelector(".household")
 	var memberEntry = createElement("li", createHouseholdMemberListEntry(member), "household-member")
-	memberEntry.setAttribute("data-value", member.id)
 	var removeButton = createElement("button", "Remove", "remove")
+
+	memberEntry.setAttribute("data-value", member.id)
 	memberEntry.appendChild(removeButton)
 	memberList.appendChild(memberEntry)
 
 	removeButton.addEventListener("click", function() {
 		removeMember(member)
-		console.log(householdMembers)
 	})
 }
 
-function createElement(tag, text, className) {
-	var element = document.createElement(tag)
-	if (className) {
-		element.className = className		
-	}
-	var elementText = document.createTextNode(text)
-	element.appendChild(elementText)
-	return element
-}
-
-// Removes a member from the DOM and the submission list
+// Removes the member from the DOM list and the submission array
 function removeMember(member) {
 	var domListEntry = document.querySelectorAll(".household-member")
 
-	for (var i = 0; i < householdMembers.length && i < domListEntry.length; i++) {
+	for (var i = 0; i < householdMembers.length && i < domListEntry.length; i++) {		
 		var listId = domListEntry[i].getAttribute("data-value")
 		var arrayId = householdMembers[i].id
+
 		if (listId == member.id && arrayId === member.id) {
 			domListEntry[i].remove()
 			householdMembers.splice([i], 1)
 		}
+
 	}
 }
 
-// Validate form entries
-function testFields(valuesArray) {
+/********** VALIDATION *********/
+
+function validateFields(valuesArray) {
 	var fields = document.querySelectorAll("[name]")
 	var bool = true
 	for (i = 0; i < fields.length; i++) {
@@ -116,7 +119,7 @@ function testFields(valuesArray) {
 			case "age": 
 				var value = Number(value)
 				if (!value || isNaN(value) === true || value < 1) { 
-					formErrorMessage(field)
+					createFormError(field)
 					bool = false				
 				} else {
 					valuesArray.push(value)
@@ -124,7 +127,7 @@ function testFields(valuesArray) {
 				break;
 			case "rel":
 				if (!value) { 					
-					formErrorMessage(field)
+					createFormError(field)
 					bool = false					
 				}	else {
 					valuesArray.push(value)
@@ -139,21 +142,33 @@ function testFields(valuesArray) {
 	return bool
 }
 
-// Create error message
-function formErrorMessage(formField) {
-	var errorElement = document.createElement("p")
-	errorElement.className = "error"
+function createFormError(formField) {
+	var formErrorStyles = "color:red; display:inline; margin-left:5px"
+
+	// Takes the field label name, cleans it, and puts it in the error message text
+	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()
+	var formError = createElement("p", "Please enter a valid " + cleanedFieldLabel, "error", formErrorStyles)
+
 	formField.style.outline = "1px solid red"
 	formField.className = "error"
-	errorElement.style.cssText = "color:red; display:inline; margin-left:5px"
-
-	// Takes the label name, cleans it, and puts it in the error message text
-	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()			
-	var errorMessage = document.createTextNode("Please enter a valid " + cleanedFieldLabel)
-	errorElement.appendChild(errorMessage)
-	formField.parentElement.appendChild(errorElement)
+	formField.parentElement.appendChild(formError)
 }
 
+/********** HELPERS *********/
+
+// Create an element, style it, and assign a class
+function createElement(tag, text, className, styles) {
+	var element = document.createElement(tag)
+	if (className) {
+		element.className = className		
+	}
+	if (styles) {
+		element.style.cssText = styles
+	}
+	var elementText = document.createTextNode(text)
+	element.appendChild(elementText)
+	return element
+}
 // Clear error messages
 function clearErrors() {
 	var errors = document.querySelectorAll(".error")
@@ -175,7 +190,3 @@ function createHouseholdMemberListEntry(member) {
 function capitalizeFirstLetter(string) {
 	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
 }
-
-// Button events
-addButton.onclick = createHouseholdMember
-submitButton.onclick = submitHouseholdList
