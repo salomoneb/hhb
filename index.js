@@ -1,32 +1,22 @@
-window.onload = setStyles
+window.onload = setInitialStyles
 
 var addButton = document.querySelector(".add")
 var submitButton = document.querySelector("button[type='submit']")
 var members = [] || members
 
-// Default button behavior
-var buttons = document.querySelectorAll("button")
-buttons.forEach(function(button) {
-	button.setAttribute("type", "button")
-	// button.style.cssText = "border-radius: 5px; color: #fff; cursor: pointer;	 display: inline-block; padding: 0.5em 2em; text-transform: uppercase;"
-	button.addEventListener("click", function() {
-		clearErrors()
-	})
-})
-
 addButton.onclick = validateMember
 submitButton.onclick = submitMembers
 
-/********** MEMBER OBJECT *********/
+/*****************************/
+/******* MEMBER OBJECT *******/
+/*****************************/
 
-// Function representing a household member
 function Member(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
 	members.push(this)
 }
-
 // Method to set a pseudo-unique four digit household member ID  
 Member.prototype.setId = function() {
 	this.id = (function() {
@@ -40,20 +30,25 @@ Member.prototype.setId = function() {
 	})()
 }
 
-/********** CREATION AND SUBMISSION *********/
+/*****************************/
+/** CREATION AND SUBMISSION **/
+/*****************************/
 
 function validateMember() {
+	clearFieldErrors()
 	var fieldValues = [] || fieldValues
 	if (validateFields(fieldValues)) { createMember(fieldValues, displayMember) }
 }
 
 function submitMembers() {
+	clearFieldErrors()
 	members.length ? jsonifyMembers(members) : createSubmissionError()
 
 	function jsonifyMembers(members) {
 		var debugElement = document.querySelector(".debug")
 		debugElement.innerHTML = ""			
-		debugElement.style.cssText = "display:block;"
+		debugElement.style.cssText = "background: #eee; color: #333; display:block;"
+
 		var jsonMembers = JSON.stringify({members}, null, 2)
 		jsonMembers = document.createTextNode(jsonMembers)
 		debugElement.appendChild(jsonMembers)
@@ -61,7 +56,7 @@ function submitMembers() {
 
 	function createSubmissionError() {
 		var builderElement = document.querySelector(".builder")
-		var submissionError = createElement("p", "Please add at least one household member.", "error")
+		var submissionError = createElement("p", "Please add at least one household member.", "error", "color:red;")
 		builderElement.appendChild(submissionError)
 	}	
 }
@@ -71,12 +66,12 @@ function createMember(fieldValues, displayMember) {
 	member.setId()	
 	document.querySelector("form").reset()
 	displayMember(member)
-	console.log(members)
 }
 
 function displayMember(member) {	
-	var memberItem = createElement("li", createMemberItem(member), "household-member", "margin: 0.5em 0;")
-	var removeButton = createElement("button", "Remove", "remove-button")
+	var memberItem = createElement("li", createMemberString(member), "household-member", "margin: 0.5em 0;")
+	var removeButtonStyles = "background: #ff0000; border-radius: 5px; border: 1px solid #b30000; color: #fff; cursor: pointer; margin-left: 1em; padding: 0.2em 1em;"
+	var removeButton = createElement("button", "Remove", "remove-button", removeButtonStyles)
 
 	memberItem.setAttribute("data-value", member.id)
 	memberItem.appendChild(removeButton)
@@ -95,16 +90,16 @@ function removeMember(member) {
 	for (var i = 0; i < members.length && i < displayedMembers.length; i++) {		
 		var displayId = displayedMembers[i].getAttribute("data-value")
 		var arrayId = members[i].id
-
 		if (displayId == member.id && arrayId === member.id) {
 			displayedMembers[i].remove()
 			members.splice([i], 1)
 		}
-
 	}
 }
 
-/********** VALIDATION *********/
+/****************************/
+/******** VALIDATION ********/
+/****************************/
 
 function validateFields(valuesArray) {
 	var fields = document.querySelectorAll("[name]")
@@ -142,17 +137,18 @@ function validateFields(valuesArray) {
 
 function createFormError(formField) {
 	var formErrorStyles = "color:red; display:inline; margin-left:5px"
-
 	// Takes the field label name, cleans it, and puts it in the error message text
 	var cleanedFieldLabel = formField.previousSibling.textContent.toLowerCase().trim()
 	var formError = createElement("p", "Please enter a valid " + cleanedFieldLabel, "error", formErrorStyles)
 
-	formField.style.outline = "1px solid red"
+	formField.style.cssText = "outline: 1px solid #ff0000;"
 	formField.className = "error"
 	formField.parentElement.appendChild(formError)
 }
 
+/****************************/
 /********** HELPERS *********/
+/****************************/
 
 // Create an element, style it, and assign a class
 function createElement(tag, text, className, styles) {
@@ -168,14 +164,14 @@ function createElement(tag, text, className, styles) {
 	return element
 }
 // Clear error messages
-function clearErrors() {
+function clearFieldErrors() {
 	var errors = document.querySelectorAll(".error")
 	for (var i = 0; i < errors.length; i++) {
 		errors[i].tagName === "P" ? errors[i].remove() : errors[i].removeAttribute("style")
 	}
 }
 // Generate a text string based on each member's data
-function createMemberItem(member) {
+function createMemberString(member) {
 	var string = ""
 	for (prop in member) {
 		if (member.hasOwnProperty(prop) && prop !== "id") {
@@ -189,9 +185,23 @@ function capitalizeFirstLetter(string) {
 	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
 }
 
+/****************************/
 /********** STYLING *********/
+/****************************/
 
-function setStyles() {
+function setInitialStyles() {
 	document.querySelector("body").style.cssText = "margin: 2em 4em; font-family: Arial, Helvetica, sans-serif;"
 	document.querySelector("ol").style.cssText = "list-style: inside; list-style-type: decimal; margin-bottom: 2em; padding-left: 0;"
+	var formFields = document.querySelectorAll("form > div")
+	for (i = 0; i < formFields.length; i++) {
+		formFields[i].style.cssText = "margin-top: 0.5em;"
+	}
+	var buttons = document.querySelectorAll("button")
+	for (i = 0; i < buttons.length; i++) {
+		buttons[i].setAttribute("type", "button")
+	}
+	addButton.parentElement.style.cssText = "display: inline-block; margin: 1em 0.5em 0 0;"
+	submitButton.parentElement.style.cssText = "display: inline-block; margin-top: 1em;"
+	addButton.setAttribute("style", "background-color: #6495ed; border: 1px solid #1f66e5; border-radius: 5px; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;")
+	submitButton.style.cssText = "background-color: #54c65d; border: 1px solid #339a3b; border-radius: 5px; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;"	
 }
