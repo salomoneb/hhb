@@ -69,7 +69,7 @@ function createMember(fieldValues, displayMember) {
 }
 
 function displayMember(member) {	
-	var memberItem = createElement("li", createMemberString(member), "household-member", "margin: 0.5em 0;")
+	var memberItem = createElement("li", createMemberString(member), "household-member", "padding: 5px 0;")
 	var removeButtonStyles = "background: #ff0000; border-radius: 5px; border: 1px solid #b30000; color: #fff; cursor: pointer; margin-left: 1em; padding: 0.2em 1em;"
 	var removeButton = createElement("button", "Remove", "remove-button", removeButtonStyles)
 
@@ -174,7 +174,9 @@ function clearFieldErrors() {
 function createMemberString(member) {
 	var string = ""
 	for (prop in member) {
-		if (member.hasOwnProperty(prop) && prop !== "id") {
+		if (member.hasOwnProperty(prop) && prop !== "id" && prop !== "smoker") {
+			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + "  ||  "
+		} else if (prop === "smoker") {
 			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + " "
 		}
 	}
@@ -191,7 +193,7 @@ function capitalizeFirstLetter(string) {
 
 function setInitialStyles() {
 	document.querySelector("body").style.cssText = "margin: 2em 4em; font-family: Arial, Helvetica, sans-serif;"
-	document.querySelector("ol").style.cssText = "list-style: inside; list-style-type: decimal; margin-bottom: 2em; padding-left: 0;"
+	document.querySelector("ol").style.cssText = "list-style: inside; list-style-type: decimal; margin-bottom: 1.5em; padding-left: 0;"
 	var formFields = document.querySelectorAll("form > div")
 	for (i = 0; i < formFields.length; i++) {
 		formFields[i].style.cssText = "margin-top: 0.5em;"
