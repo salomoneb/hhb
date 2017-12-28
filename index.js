@@ -7,10 +7,7 @@ var members = [] || members
 addButton.onclick = validateMember
 submitButton.onclick = submitMembers
 
-/*****************************/
-/******* MEMBER OBJECT *******/
-/*****************************/
-
+/*------ MEMBER OBJECT ------*/
 function Member(values) {
 	this.age = values[0]
 	this.relationship = values[1]
@@ -30,16 +27,14 @@ Member.prototype.setId = function() {
 	})()
 }
 
-/*****************************/
-/** CREATION AND SUBMISSION **/
-/*****************************/
-
+/*------ CREATION AND SUBMISSION ------*/
+// Main validation happens here, member created if true
 function validateMember() {
 	clearFieldErrors()
 	var fieldValues = [] || fieldValues
 	if (validateFields(fieldValues)) { createMember(fieldValues, displayMember) }
 }
-
+// When members submitted - JSONify members or throw error
 function submitMembers() {
 	clearFieldErrors()
 	members.length ? jsonifyMembers(members) : createSubmissionError()
@@ -47,7 +42,7 @@ function submitMembers() {
 	function jsonifyMembers(members) {
 		var debugElement = document.querySelector(".debug")
 		debugElement.innerHTML = ""			
-		debugElement.style.cssText = "background: #eee; color: #333; display:block;"
+		debugElement.style.cssText = "background: #f5f5f5; color: #333; display:block;"
 
 		var jsonMembers = JSON.stringify({members}, null, 2)
 		jsonMembers = document.createTextNode(jsonMembers)
@@ -56,18 +51,18 @@ function submitMembers() {
 
 	function createSubmissionError() {
 		var builderElement = document.querySelector(".builder")
-		var submissionError = createElement("p", "Please add at least one household member.", "error", "color:red;")
+		var submissionError = createElement("p", "Please add at least one household member.", "error", "color:#ff0000;")
 		builderElement.appendChild(submissionError)
 	}	
 }
-
+// When members created - instantiate, set unique ID, add to DOM
 function createMember(fieldValues, displayMember) {
 	var member = new Member(fieldValues)
 	member.setId()	
 	document.querySelector("form").reset()
 	displayMember(member)
 }
-
+// How added member appears in DOM 
 function displayMember(member) {	
 	var memberItem = createElement("li", createMemberString(member), "household-member", "padding: 5px 0;")
 	var removeButtonStyles = "background: #ff0000; border-radius: 5px; border: 1px solid #b30000; color: #fff; cursor: pointer; margin-left: 1em; padding: 0.2em 1em;"
@@ -83,7 +78,7 @@ function displayMember(member) {
 		removeMember(member)
 	})
 }
-
+// Removes the member from DOM and our submission list
 function removeMember(member) {
 	var displayedMembers = document.querySelectorAll(".household-member")
 
@@ -97,10 +92,8 @@ function removeMember(member) {
 	}
 }
 
-/****************************/
-/******** VALIDATION ********/
-/****************************/
-
+/*------ VALIDATION ------*/
+// Main validation function
 function validateFields(valuesArray) {
 	var fields = document.querySelectorAll("[name]")
 	var bool = true
@@ -134,7 +127,7 @@ function validateFields(valuesArray) {
 	}
 	return bool
 }
-
+// Error function thrown if form field is invalid 
 function createFormError(formField) {
 	var formErrorStyles = "color:red; display:inline; margin-left:5px"
 	// Takes the field label name, cleans it, and puts it in the error message text
@@ -146,10 +139,7 @@ function createFormError(formField) {
 	formField.parentElement.appendChild(formError)
 }
 
-/****************************/
-/********** HELPERS *********/
-/****************************/
-
+/*------ HELPERS ------*/
 // Create an element, style it, and assign a class
 function createElement(tag, text, className, styles) {
 	var element = document.createElement(tag)
@@ -175,7 +165,7 @@ function createMemberString(member) {
 	var string = ""
 	for (prop in member) {
 		if (member.hasOwnProperty(prop) && prop !== "id" && prop !== "smoker") {
-			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + "  ||  "
+			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + "  |  "
 		} else if (prop === "smoker") {
 			string += capitalizeFirstLetter(prop) + ": " + capitalizeFirstLetter(member[prop]) + " "
 		}
@@ -187,10 +177,8 @@ function capitalizeFirstLetter(string) {
 	return typeof string === "string" ? string.charAt(0).toUpperCase() + string.slice(1) : string
 }
 
-/****************************/
-/********** STYLING *********/
-/****************************/
-
+/*------ BASE STYLING ------*/
+// Not in the requirements, but I added this to make the form look better
 function setInitialStyles() {
 	document.querySelector("body").style.cssText = "margin: 2em 4em; font-family: Arial, Helvetica, sans-serif;"
 	document.querySelector("ol").style.cssText = "list-style: inside; list-style-type: decimal; margin-bottom: 1.5em; padding-left: 0;"
@@ -204,6 +192,6 @@ function setInitialStyles() {
 	}
 	addButton.parentElement.style.cssText = "display: inline-block; margin: 1em 0.5em 0 0;"
 	submitButton.parentElement.style.cssText = "display: inline-block; margin-top: 1em;"
-	addButton.setAttribute("style", "background-color: #6495ed; border: 1px solid #1f66e5; border-radius: 5px; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;")
-	submitButton.style.cssText = "background-color: #54c65d; border: 1px solid #339a3b; border-radius: 5px; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;"	
+	addButton.setAttribute("style", "background-color: #6495ed; border: 1px solid #1f66e5; border-radius: 5px; box-shadow: 3px 3px 10px #eee; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;")
+	submitButton.style.cssText = "background-color: #54c65d; border: 1px solid #339a3b; border-radius: 5px; box-shadow: 3px 3px 10px #eee; color: #fff; cursor: pointer; display: inline-block; padding: 0.5em 2em; text-transform: uppercase;"	
 }
