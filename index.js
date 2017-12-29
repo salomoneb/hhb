@@ -12,19 +12,22 @@ function Member(values) {
 	this.age = values[0]
 	this.relationship = values[1]
 	this.smoker = values[2]
+
 	members.push(this)
 }
 // Method to set a pseudo-unique four digit household member ID  
 Member.prototype.setId = function() {
-	this.id = (function() {
+	this.id = createId()
+
+	function createId() {
 		var uniqueId = Math.floor((Math.random() * 9000) + 1000)
 		members.forEach(function(member) {
-			if (member.id === uniqueId) {
-				createId()
-			} 
+			if (member.id === uniqueId) { 
+				createId() 
+			}
 		})
-		return uniqueId	
-	})()
+		return uniqueId
+	}
 }
 
 /*------ CREATION AND SUBMISSION ------*/
@@ -32,7 +35,9 @@ Member.prototype.setId = function() {
 function validateMember() {
 	clearFieldErrors()
 	var fieldValues = [] || fieldValues
-	if (validateFields(fieldValues)) { createMember(fieldValues, displayMember) }
+	if (validateFields(fieldValues)) { 
+		createMember(fieldValues, displayMember) 
+	}
 }
 // When members submitted - JSONify members or throw error
 function submitMembers() {
